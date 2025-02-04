@@ -7,12 +7,15 @@ import ProductCard from "@/components/product-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Camera, X } from "lucide-react";
 import { BrowserMultiFormatReader } from '@zxing/browser';
+import { useToast } from "@/hooks/use-toast";
 
 export default function Scan() {
   const [barcode, setBarcode] = useState("");
   const [isScanning, setIsScanning] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const codeReader = useRef<BrowserMultiFormatReader>();
+  const streamRef = useRef<MediaStream | null>(null);
+  const { toast } = useToast();
 
   const { data: product } = useQuery<Product>({
     queryKey: [`/api/products/barcode/${barcode}`, barcode],
@@ -25,9 +28,8 @@ export default function Scan() {
 
     // Cleanup on component unmount
     return () => {
-      if (codeReader.current && isScanning) {
-        codeReader.current.close();
-        setIsScanning(false);
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
       }
     };
   }, []);
@@ -43,6 +45,16 @@ export default function Scan() {
       }
 
       const selectedDeviceId = devices[0].deviceId;
+
+      // Get the media stream first
+      streamRef.current = await navigator.mediaDevices.getUserMedia({
+        video: { deviceId: selectedDeviceId }
+      });
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = streamRef.current;
+      }
+
       await codeReader.current.decodeFromVideoDevice(
         selectedDeviceId,
         videoRef.current!,
@@ -55,15 +67,25 @@ export default function Scan() {
       );
     } catch (err) {
       console.error('Error accessing camera:', err);
+      toast({
+        title: "Camera Error",
+        description: "Could not access the camera. Please ensure camera permissions are granted.",
+        variant: "destructive"
+      });
       setIsScanning(false);
     }
   };
 
   const stopScanning = () => {
-    if (codeReader.current) {
-      codeReader.current.close();
-      setIsScanning(false);
+    if (streamRef.current) {
+      // Stop all tracks in the stream
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
     }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    setIsScanning(false);
   };
 
   return (
@@ -108,6 +130,8 @@ export default function Scan() {
               <video
                 ref={videoRef}
                 className="absolute inset-0 w-full h-full object-cover"
+                autoPlay
+                playsInline
               />
             ) : (
               <div className="flex items-center justify-center h-full">

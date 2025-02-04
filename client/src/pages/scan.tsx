@@ -25,8 +25,8 @@ export default function Scan() {
 
     // Cleanup on component unmount
     return () => {
-      if (isScanning) {
-        codeReader.current?.stopAsyncDecode();
+      if (codeReader.current && isScanning) {
+        codeReader.current.reset();
         setIsScanning(false);
       }
     };
@@ -60,9 +60,10 @@ export default function Scan() {
   };
 
   const stopScanning = () => {
-    if (!codeReader.current) return;
-    codeReader.current.stopAsyncDecode();
-    setIsScanning(false);
+    if (codeReader.current) {
+      codeReader.current.reset();
+      setIsScanning(false);
+    }
   };
 
   return (

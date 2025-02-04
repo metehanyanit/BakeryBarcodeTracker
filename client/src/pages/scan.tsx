@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/product-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Camera, X } from "lucide-react";
+import { Camera, X, Plus } from "lucide-react";
 import { BrowserMultiFormatReader } from '@zxing/browser';
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 
 export default function Scan() {
   const [barcode, setBarcode] = useState("");
@@ -16,8 +17,9 @@ export default function Scan() {
   const codeReader = useRef<BrowserMultiFormatReader>();
   const streamRef = useRef<MediaStream | null>(null);
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
-  const { data: product } = useQuery<Product>({
+  const { data: product, error } = useQuery<Product>({
     queryKey: [`/api/products/barcode/${barcode}`, barcode],
     enabled: barcode.length > 0,
   });
@@ -88,6 +90,11 @@ export default function Scan() {
     setIsScanning(false);
   };
 
+  const handleAddProduct = () => {
+    // Navigate to add product page with barcode pre-filled
+    setLocation(`/add?barcode=${encodeURIComponent(barcode)}`);
+  };
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <Card>
@@ -143,6 +150,21 @@ export default function Scan() {
           </div>
         </CardContent>
       </Card>
+
+      {error && barcode && (
+        <Card className="bg-orange-50 border-orange-200">
+          <CardContent className="pt-6">
+            <p className="text-orange-800 mb-4">Product not found. Would you like to add it?</p>
+            <Button
+              onClick={handleAddProduct}
+              className="w-full bg-[#F9A825] hover:bg-[#F57F17] text-white"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add New Product
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {product && <ProductCard product={product} />}
     </div>

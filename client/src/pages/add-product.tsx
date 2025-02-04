@@ -23,10 +23,14 @@ export default function AddProduct() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Get barcode from URL if present
+  const params = new URLSearchParams(window.location.search);
+  const barcodeFromScanner = params.get('barcode') || '';
+
   const form = useForm<InsertProduct>({
     resolver: zodResolver(insertProductSchema),
     defaultValues: {
-      barcode: "",
+      barcode: barcodeFromScanner,
       name: "",
       description: "",
       category: "",
@@ -74,7 +78,7 @@ export default function AddProduct() {
                 <FormItem>
                   <FormLabel>Barcode</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} readOnly={!!barcodeFromScanner} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

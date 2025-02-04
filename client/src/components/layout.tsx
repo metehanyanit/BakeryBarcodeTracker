@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Link, useLocation } from "wouter";
 import { LayoutGrid, Scan, PlusCircle } from "lucide-react";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 
 const navItems = [
   { href: "/", icon: LayoutGrid, label: "Dashboard" },
@@ -12,32 +13,36 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
 
   return (
-    <div className="min-h-screen bg-[#FFF8E1]">
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t md:relative md:border-t-0">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-around md:justify-start md:space-x-8 py-2">
+    <ResizablePanelGroup direction="horizontal" className="min-h-screen">
+      <ResizablePanel defaultSize={20} minSize={15} maxSize={20} className="bg-[#FFF8E1]">
+        <div className="h-full p-4 space-y-4">
+          <h1 className="text-xl font-bold text-[#3E2723] mb-8">Bakery Inventory</h1>
+          <nav className="space-y-2">
             {navItems.map(({ href, icon: Icon, label }) => (
               <Link key={href} href={href}>
                 <a
                   className={cn(
-                    "flex flex-col items-center p-2 rounded-lg transition-colors",
-                    "hover:text-[#F9A825]",
+                    "flex items-center gap-2 p-2 rounded-lg transition-colors",
+                    "hover:bg-[#F9A825] hover:text-white",
                     location === href
-                      ? "text-[#F9A825]"
+                      ? "bg-[#F9A825] text-white"
                       : "text-[#3E2723]"
                   )}
                 >
-                  <Icon className="h-6 w-6" />
-                  <span className="text-xs mt-1">{label}</span>
+                  <Icon className="h-5 w-5" />
+                  <span>{label}</span>
                 </a>
               </Link>
             ))}
-          </div>
+          </nav>
         </div>
-      </nav>
-      <main className="container mx-auto px-4 pb-20 md:pb-4 pt-4">
-        {children}
-      </main>
-    </div>
+      </ResizablePanel>
+      <ResizableHandle />
+      <ResizablePanel defaultSize={80}>
+        <main className="h-full p-4 bg-white">
+          {children}
+        </main>
+      </ResizablePanel>
+    </ResizablePanelGroup>
   );
 }

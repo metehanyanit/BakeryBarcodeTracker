@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/product-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Camera, X, Plus } from "lucide-react";
+import { Camera, X, Plus, Scan as ScanIcon } from "lucide-react";
 import { BrowserMultiFormatReader } from '@zxing/browser';
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
@@ -25,10 +25,7 @@ export default function Scan() {
   });
 
   useEffect(() => {
-    // Initialize the code reader
     codeReader.current = new BrowserMultiFormatReader();
-
-    // Cleanup on component unmount
     return () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
@@ -47,8 +44,6 @@ export default function Scan() {
       }
 
       const selectedDeviceId = devices[0].deviceId;
-
-      // Get the media stream first
       streamRef.current = await navigator.mediaDevices.getUserMedia({
         video: { deviceId: selectedDeviceId }
       });
@@ -80,7 +75,6 @@ export default function Scan() {
 
   const stopScanning = () => {
     if (streamRef.current) {
-      // Stop all tracks in the stream
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
     }
@@ -91,16 +85,16 @@ export default function Scan() {
   };
 
   const handleAddProduct = () => {
-    // Navigate to add product page with barcode pre-filled
     setLocation(`/add?barcode=${encodeURIComponent(barcode)}`);
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl font-josefin-sans text-[#3E2723]">
-            Barcode Scanner
+          <CardTitle className="text-xl font-josefin-sans text-[#3E2723] flex items-center gap-2">
+            <ScanIcon className="h-5 w-5" />
+            Scan Barcode
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -123,16 +117,14 @@ export default function Scan() {
               ) : (
                 <>
                   <Camera className="w-4 h-4 mr-2" />
-                  Start Camera
+                  Scan
                 </>
               )}
             </Button>
           </div>
-          <div
-            className={`relative h-48 border-2 border-dashed rounded-lg overflow-hidden ${
-              isScanning ? 'border-[#F9A825]' : 'border-gray-200'
-            }`}
-          >
+          <div className={`relative h-[calc(100vh-20rem)] border-2 border-dashed rounded-lg overflow-hidden ${
+            isScanning ? 'border-[#F9A825]' : 'border-gray-200'
+          }`}>
             {isScanning ? (
               <video
                 ref={videoRef}
@@ -143,7 +135,7 @@ export default function Scan() {
             ) : (
               <div className="flex items-center justify-center h-full">
                 <span className="text-gray-500">
-                  Click "Start Camera" to scan barcode
+                  Click "Scan" to start scanning
                 </span>
               </div>
             )}
@@ -151,22 +143,24 @@ export default function Scan() {
         </CardContent>
       </Card>
 
-      {error && barcode && (
-        <Card className="bg-orange-50 border-orange-200">
-          <CardContent className="pt-6">
-            <p className="text-orange-800 mb-4">Product not found. Would you like to add it?</p>
-            <Button
-              onClick={handleAddProduct}
-              className="w-full bg-[#F9A825] hover:bg-[#F57F17] text-white"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add New Product
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+      <div className="space-y-4">
+        {error && barcode && (
+          <Card className="bg-orange-50 border-orange-200">
+            <CardContent className="pt-6">
+              <p className="text-orange-800 mb-4">Product not found. Would you like to add it?</p>
+              <Button
+                onClick={handleAddProduct}
+                className="w-full bg-[#F9A825] hover:bg-[#F57F17] text-white"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add New Product
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
-      {product && <ProductCard product={product} />}
+        {product && <ProductCard product={product} />}
+      </div>
     </div>
   );
 }

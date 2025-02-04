@@ -11,6 +11,7 @@ import {
   ResponsiveContainer
 } from "recharts";
 import { format, subDays } from "date-fns";
+import { TrendingDown } from "lucide-react";
 
 interface StockForecastProps {
   product: Product;
@@ -42,7 +43,7 @@ export default function StockForecast({ product }: StockForecastProps) {
 
   // Prepare chart data
   const chartData: ChartDataPoint[] = history
-    .slice(0, 10) // Show last 10 records
+    .slice(0, 10)
     .map(h => ({
       date: format(new Date(h.timestamp), 'MMM dd'),
       quantity: h.quantity
@@ -62,14 +63,15 @@ export default function StockForecast({ product }: StockForecastProps) {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-xl font-josefin-sans text-[#3E2723]">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-lg font-josefin-sans text-[#3E2723] flex items-center gap-2">
+          <TrendingDown className="h-4 w-4" />
           Stock Forecast
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          <div className="h-[200px]">
+        <div className="space-y-2">
+          <div className="h-[180px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -78,8 +80,9 @@ export default function StockForecast({ product }: StockForecastProps) {
                   angle={-45} 
                   textAnchor="end" 
                   height={50} 
+                  tick={{ fontSize: 12 }}
                 />
-                <YAxis />
+                <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip />
                 <Line
                   type="monotone"
@@ -93,21 +96,21 @@ export default function StockForecast({ product }: StockForecastProps) {
             </ResponsiveContainer>
           </div>
 
-          <div className="space-y-2">
-            <p className="text-sm text-[#795548]">
-              Average daily usage: {avgDailyUsage.toFixed(1)} units
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <p className="text-[#795548]">
+              Avg. daily usage: {avgDailyUsage.toFixed(1)}
             </p>
             {daysUntilDepletion < Infinity && (
-              <p className={`text-sm ${daysUntilDepletion < 7 ? 'text-red-600' : 'text-[#795548]'}`}>
-                Stock will last approximately {daysUntilDepletion} days at current usage
-              </p>
-            )}
-            {product.quantity < product.minQuantity && (
-              <p className="text-sm text-red-600 font-semibold">
-                Stock is below minimum quantity threshold
+              <p className={`text-right ${daysUntilDepletion < 7 ? 'text-red-600' : 'text-[#795548]'}`}>
+                {daysUntilDepletion} days remaining
               </p>
             )}
           </div>
+          {product.quantity < product.minQuantity && (
+            <p className="text-sm text-red-600 font-medium">
+              Stock is below minimum quantity
+            </p>
+          )}
         </div>
       </CardContent>
     </Card>

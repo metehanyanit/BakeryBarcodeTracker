@@ -1,32 +1,82 @@
 import { useQuery } from "@tanstack/react-query";
-import ProductCard from "@/components/product-card";
-import ExpiryAlert from "@/components/expiry-alert";
 import { type Product } from "@shared/schema";
-import { Skeleton } from "@/components/ui/skeleton";
+import ExpiryAlert from "@/components/expiry-alert";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
 
-function ProductGrid({ products }: { products: Product[] }) {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
-      ))}
-    </div>
+function ProductTable({ products }: { products: Product[] }) {
+  const [filter, setFilter] = useState("");
+
+  const filteredProducts = products.filter(product => 
+    product.name.toLowerCase().includes(filter.toLowerCase()) ||
+    product.category.toLowerCase().includes(filter.toLowerCase()) ||
+    product.barcode.includes(filter)
   );
-}
 
-function LoadingSkeleton() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {[...Array(6)].map((_, i) => (
-        <div key={i} className="space-y-4">
-          <Skeleton className="h-[200px] w-full" />
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-3/4" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-1/2" />
-          </div>
-        </div>
-      ))}
+    <div className="space-y-4">
+      <Input
+        placeholder="Search products..."
+        value={filter}
+        onChange={(e) => setFilter(e.target.value)}
+        className="max-w-sm"
+      />
+      <div className="border rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Category</TableHead>
+              <TableHead>Barcode</TableHead>
+              <TableHead className="text-right">Stock</TableHead>
+              <TableHead className="text-right">Min. Qty</TableHead>
+              <TableHead>Expiry Date</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredProducts.map((product) => {
+              const isLowStock = product.quantity < product.minQuantity;
+              const expiryDate = new Date(product.expiryDate);
+              const isExpiringSoon = expiryDate.getTime() - new Date().getTime() < 86400000 * 2;
+
+              return (
+                <TableRow key={product.id}>
+                  <TableCell className="font-medium">{product.name}</TableCell>
+                  <TableCell>{product.category}</TableCell>
+                  <TableCell className="font-mono">{product.barcode}</TableCell>
+                  <TableCell 
+                    className={cn(
+                      "text-right font-medium",
+                      isLowStock ? "text-red-600" : "text-green-600"
+                    )}
+                  >
+                    {product.quantity}
+                  </TableCell>
+                  <TableCell className="text-right">{product.minQuantity}</TableCell>
+                  <TableCell
+                    className={cn(
+                      isExpiringSoon && "text-red-600"
+                    )}
+                  >
+                    {format(expiryDate, "MMM dd, yyyy")}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }
@@ -36,16 +86,24 @@ export default function Dashboard() {
     queryKey: ["/api/products"],
   });
 
-  if (isLoading) return <LoadingSkeleton />;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="h-8 w-8 animate-spin text-[#F9A825]" />
+      </div>
+    );
+  }
   if (!products) return null;
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-josefin-sans font-bold text-[#3E2723]">
-        Inventory Dashboard
-      </h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-josefin-sans font-bold text-[#3E2723]">
+          Inventory Dashboard
+        </h1>
+      </div>
       <ExpiryAlert products={products} />
-      <ProductGrid products={products} />
+      <ProductTable products={products} />
     </div>
   );
 }

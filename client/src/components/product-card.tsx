@@ -1,4 +1,4 @@
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { type Product } from "@shared/schema";
@@ -63,44 +63,44 @@ export default function ProductCard({ product }: { product: Product }) {
   const isExpiringSoon = expiryDate.getTime() - new Date().getTime() < 86400000 * 2;
 
   return (
-    <div className="space-y-4">
-      <Card className="w-full">
-        <CardContent className="pt-4">
-          <div className="aspect-square rounded-md overflow-hidden mb-4">
-            <img
-              src={product.imageUrl}
-              alt={product.name}
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <div className="space-y-1">
-            <h3 className="font-semibold text-lg text-[#3E2723]">{product.name}</h3>
-            <p className="text-sm text-[#795548]">{product.description}</p>
-            <div className="flex justify-between items-center text-sm">
-              <span>Category: {product.category}</span>
-              <span
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex gap-4">
+            <div className="w-24 h-24 rounded overflow-hidden flex-shrink-0">
+              <img
+                src={product.imageUrl}
+                alt={product.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-lg text-[#3E2723] truncate">{product.name}</h3>
+              <p className="text-sm text-[#795548] line-clamp-2">{product.description}</p>
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-sm">Category: {product.category}</span>
+                <span
+                  className={cn(
+                    "px-2 py-0.5 rounded text-sm",
+                    isLowStock 
+                      ? "bg-red-100 text-red-800"
+                      : "bg-green-100 text-green-800"
+                  )}
+                >
+                  Stock: {product.quantity}
+                </span>
+              </div>
+              <p
                 className={cn(
-                  "px-2 py-1 rounded",
-                  isLowStock 
-                    ? "bg-red-100 text-red-800"
-                    : "bg-green-100 text-green-800"
+                  "text-sm mt-1",
+                  isExpiringSoon ? "text-red-600" : "text-[#795548]"
                 )}
               >
-                Stock: {product.quantity}
-              </span>
+                Expires: {format(expiryDate, "MMM dd, yyyy")}
+              </p>
             </div>
-            <p
-              className={cn(
-                "text-sm",
-                isExpiringSoon ? "text-red-600" : "text-[#795548]"
-              )}
-            >
-              Expires: {format(expiryDate, "MMM dd, yyyy")}
-            </p>
           </div>
-        </CardContent>
-        <CardFooter className="flex flex-col gap-2">
-          <div className="flex gap-2 w-full">
+          <div className="flex gap-2 mt-4">
             <Input
               type="number"
               value={quantity}
@@ -114,15 +114,15 @@ export default function ProductCard({ product }: { product: Product }) {
               onChange={(e) => setReason(e.target.value)}
               className="flex-1"
             />
+            <Button 
+              onClick={handleUpdate}
+              disabled={updateQuantity.isPending}
+              className="bg-[#F9A825] hover:bg-[#F57F17] text-white whitespace-nowrap"
+            >
+              Update
+            </Button>
           </div>
-          <Button 
-            onClick={handleUpdate}
-            disabled={updateQuantity.isPending}
-            className="w-full bg-[#F9A825] hover:bg-[#F57F17] text-white"
-          >
-            Update
-          </Button>
-        </CardFooter>
+        </CardContent>
       </Card>
 
       <StockForecast product={product} />

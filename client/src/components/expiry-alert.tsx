@@ -10,18 +10,21 @@ export default function ExpiryAlert({ products }: { products: Product[] }) {
   if (expiringSoon.length === 0) return null;
 
   return (
-    <Alert className="bg-red-50 border-red-200 mb-4">
-      <AlertTitle className="text-red-800">
-        Products Expiring Soon
+    <Alert className="bg-red-50 border-red-200">
+      <AlertTitle className="text-red-800 flex items-center gap-2">
+        Products Expiring Soon ({expiringSoon.length})
       </AlertTitle>
       <AlertDescription className="text-red-600">
-        <ul className="list-disc list-inside">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-2">
           {expiringSoon.map((product) => (
-            <li key={product.id}>
-              {product.name} - Expires {format(new Date(product.expiryDate), "MMM dd, yyyy")}
-            </li>
+            <div key={product.id} className="text-sm">
+              <span className="font-medium">{product.name}</span>
+              <span className="block text-xs">
+                Expires {format(new Date(product.expiryDate), "MMM dd, yyyy")}
+              </span>
+            </div>
           ))}
-        </ul>
+        </div>
       </AlertDescription>
     </Alert>
   );

@@ -1,28 +1,60 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { type Product } from "@shared/schema";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/product-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Scan as ScanIcon } from "lucide-react";
+import { Scan as ScanIcon, Camera, X } from "lucide-react";
+import { BrowserMultiFormatReader } from '@zxing/browser';
 
 export default function Scan() {
   const [barcode, setBarcode] = useState("");
-  const [scanning, setScanning] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const codeReader = useRef(new BrowserMultiFormatReader());
 
   const { data: product } = useQuery<Product>({
     queryKey: [`/api/products/barcode/${barcode}`, barcode],
     enabled: barcode.length > 0,
   });
 
-  const simulateScan = () => {
-    setScanning(true);
-    // Simulate scanning delay and randomly pick one of the sample barcodes
-    setTimeout(() => {
-      setBarcode(Math.random() > 0.5 ? "123456789" : "987654321");
-      setScanning(false);
-    }, 1500);
+  useEffect(() => {
+    return () => {
+      codeReader.current.reset();
+    };
+  }, []);
+
+  const startScanning = async () => {
+    try {
+      setIsScanning(true);
+      const videoInputDevices = await codeReader.current.listVideoInputDevices();
+
+      if (videoInputDevices.length === 0) {
+        throw new Error('No camera found');
+      }
+
+      const selectedDeviceId = videoInputDevices[0].deviceId;
+
+      await codeReader.current.decodeFromVideoDevice(
+        selectedDeviceId,
+        videoRef.current!,
+        (result, error) => {
+          if (result) {
+            setBarcode(result.getText());
+            stopScanning();
+          }
+        }
+      );
+    } catch (err) {
+      console.error('Error accessing camera:', err);
+      setIsScanning(false);
+    }
+  };
+
+  const stopScanning = () => {
+    codeReader.current.reset();
+    setIsScanning(false);
   };
 
   return (
@@ -42,23 +74,38 @@ export default function Scan() {
               className="flex-1"
             />
             <Button
-              onClick={simulateScan}
-              disabled={scanning}
+              onClick={isScanning ? stopScanning : startScanning}
               className="bg-[#F9A825] hover:bg-[#F57F17] text-white"
             >
-              <ScanIcon className="w-4 h-4 mr-2" />
-              {scanning ? "Scanning..." : "Scan"}
+              {isScanning ? (
+                <>
+                  <X className="w-4 h-4 mr-2" />
+                  Stop
+                </>
+              ) : (
+                <>
+                  <Camera className="w-4 h-4 mr-2" />
+                  Start Camera
+                </>
+              )}
             </Button>
           </div>
           <div
-            className={`h-48 border-2 border-dashed rounded-lg flex items-center justify-center ${
-              scanning ? "border-[#F9A825] animate-pulse" : "border-gray-200"
+            className={`relative h-48 border-2 border-dashed rounded-lg overflow-hidden ${
+              isScanning ? 'border-[#F9A825]' : 'border-gray-200'
             }`}
           >
-            {scanning ? (
-              <span className="text-[#F9A825]">Scanning...</span>
+            {isScanning ? (
+              <video
+                ref={videoRef}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
             ) : (
-              <span className="text-gray-500">Scanner View</span>
+              <div className="flex items-center justify-center h-full">
+                <span className="text-gray-500">
+                  Click "Start Camera" to scan barcode
+                </span>
+              </div>
             )}
           </div>
         </CardContent>

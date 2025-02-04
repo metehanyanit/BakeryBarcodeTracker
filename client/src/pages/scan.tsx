@@ -26,7 +26,7 @@ export default function Scan() {
     // Cleanup on component unmount
     return () => {
       if (codeReader.current && isScanning) {
-        codeReader.current.reset();
+        codeReader.current.close();
         setIsScanning(false);
       }
     };
@@ -61,7 +61,7 @@ export default function Scan() {
 
   const stopScanning = () => {
     if (codeReader.current) {
-      codeReader.current.reset();
+      codeReader.current.close();
       setIsScanning(false);
     }
   };
@@ -82,7 +82,7 @@ export default function Scan() {
               placeholder="Enter barcode manually..."
               className="flex-1"
             />
-            <Button
+            <Button 
               onClick={isScanning ? stopScanning : startScanning}
               className="bg-[#F9A825] hover:bg-[#F57F17] text-white"
             >

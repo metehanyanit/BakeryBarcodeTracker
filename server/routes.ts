@@ -21,6 +21,11 @@ export function registerRoutes(app: Express) {
     res.json(product);
   });
 
+  app.get("/api/products/:id/history", async (req, res) => {
+    const history = await storage.getQuantityHistory(Number(req.params.id));
+    res.json(history);
+  });
+
   app.post("/api/products", async (req, res) => {
     const result = insertProductSchema.safeParse(req.body);
     if (!result.success) {
@@ -33,11 +38,15 @@ export function registerRoutes(app: Express) {
   app.patch("/api/products/:id/quantity", async (req, res) => {
     const result = updateQuantitySchema.safeParse(req.body);
     if (!result.success) {
-      return res.status(400).json({ message: "Invalid quantity", errors: result.error });
+      return res.status(400).json({ message: "Invalid quantity update", errors: result.error });
     }
-    
+
     try {
-      const product = await storage.updateQuantity(Number(req.params.id), result.data.quantity);
+      const product = await storage.updateQuantity(
+        Number(req.params.id),
+        result.data.quantity,
+        result.data.reason
+      );
       res.json(product);
     } catch (error) {
       res.status(404).json({ message: "Product not found" });

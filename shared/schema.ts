@@ -15,6 +15,16 @@ export const products = pgTable("products", {
   lastUpdated: timestamp("last_updated").defaultNow(),
 });
 
+// New table for quantity history
+export const quantityHistory = pgTable("quantity_history", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").notNull(),
+  quantity: integer("quantity").notNull(),
+  changeAmount: integer("change_amount").notNull(),
+  timestamp: timestamp("timestamp").defaultNow(),
+  reason: text("reason").notNull(),
+});
+
 export const insertProductSchema = createInsertSchema(products)
   .omit({ id: true, lastUpdated: true })
   .extend({
@@ -23,11 +33,17 @@ export const insertProductSchema = createInsertSchema(products)
     expiryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   });
 
+export const insertQuantityHistorySchema = createInsertSchema(quantityHistory)
+  .omit({ id: true, timestamp: true });
+
 export type InsertProduct = z.infer<typeof insertProductSchema>;
 export type Product = typeof products.$inferSelect;
+export type QuantityHistory = typeof quantityHistory.$inferSelect;
+export type InsertQuantityHistory = z.infer<typeof insertQuantityHistorySchema>;
 
 export const updateQuantitySchema = z.object({
   quantity: z.number().min(0),
+  reason: z.string().min(1),
 });
 
 export type UpdateQuantity = z.infer<typeof updateQuantitySchema>;

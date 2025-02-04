@@ -5,14 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/product-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Scan as ScanIcon, Camera, X } from "lucide-react";
+import { Camera, X } from "lucide-react";
 import { BrowserMultiFormatReader } from '@zxing/browser';
 
 export default function Scan() {
   const [barcode, setBarcode] = useState("");
   const [isScanning, setIsScanning] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const codeReader = useRef(new BrowserMultiFormatReader());
+  const codeReader = useRef<BrowserMultiFormatReader>();
 
   const { data: product } = useQuery<Product>({
     queryKey: [`/api/products/barcode/${barcode}`, barcode],
@@ -20,26 +20,33 @@ export default function Scan() {
   });
 
   useEffect(() => {
+    // Initialize the code reader
+    codeReader.current = new BrowserMultiFormatReader();
+
+    // Cleanup on component unmount
     return () => {
-      codeReader.current.reset();
+      if (isScanning) {
+        codeReader.current?.stopAsyncDecode();
+        setIsScanning(false);
+      }
     };
   }, []);
 
   const startScanning = async () => {
     try {
+      if (!codeReader.current) return;
       setIsScanning(true);
-      const videoInputDevices = await codeReader.current.listVideoInputDevices();
 
-      if (videoInputDevices.length === 0) {
+      const devices = await BrowserMultiFormatReader.listVideoInputDevices();
+      if (!devices?.length) {
         throw new Error('No camera found');
       }
 
-      const selectedDeviceId = videoInputDevices[0].deviceId;
-
+      const selectedDeviceId = devices[0].deviceId;
       await codeReader.current.decodeFromVideoDevice(
         selectedDeviceId,
         videoRef.current!,
-        (result, error) => {
+        (result) => {
           if (result) {
             setBarcode(result.getText());
             stopScanning();
@@ -53,7 +60,8 @@ export default function Scan() {
   };
 
   const stopScanning = () => {
-    codeReader.current.reset();
+    if (!codeReader.current) return;
+    codeReader.current.stopAsyncDecode();
     setIsScanning(false);
   };
 

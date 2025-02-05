@@ -67,5 +67,19 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  app.get("/api/recipes", async (_req, res) => {
+    const recipes = await storage.getRecipes();
+    res.json(recipes);
+  });
+
+  app.post("/api/recipes", async (req, res) => {
+    const result = recipeSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json({ message: "Invalid recipe data", errors: result.error });
+    }
+    const recipe = await storage.createRecipe(result.data);
+    res.status(201).json(recipe);
+  });
+
   return createServer(app);
 }

@@ -1,7 +1,6 @@
-
 import { cn } from "@/lib/utils";
 import { Link, useLocation } from "wouter";
-import { LayoutGrid, Scan, PlusCircle, Menu } from "lucide-react";
+import { LayoutGrid, Scan, PlusCircle, Menu, Book } from "lucide-react"; // Book icon imported
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -10,8 +9,9 @@ import { useState } from "react";
 
 const navItems = [
   { href: "/", icon: LayoutGrid, label: "Dashboard" },
-  { href: "/scan", icon: Scan, label: "Scan Barcode" },
+  { href: "/scan", icon: Scan, label: "Scan Product" },
   { href: "/add", icon: PlusCircle, label: "Add Product" },
+  { href: "/recipes", icon: Book, label: "Recipes" }, // Added recipes navigation item
 ];
 
 const SidebarContent = ({ location }: { location: string }) => (

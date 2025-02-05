@@ -54,4 +54,21 @@ export const batchUpdateSchema = z.array(z.object({
   reason: z.string().min(1),
 }));
 
+export const recipeIngredientSchema = z.object({
+  productId: z.number(),
+  quantity: z.number().min(0),
+  unit: z.string(),
+});
+
+export const recipeSchema = z.object({
+  id: z.number().optional(),
+  name: z.string().min(1),
+  description: z.string(),
+  yield: z.number().min(1),
+  ingredients: z.array(recipeIngredientSchema),
+  instructions: z.string(),
+});
+
 export type BatchUpdate = z.infer<typeof batchUpdateSchema>;
+export type Recipe = z.infer<typeof recipeSchema>;
+export type RecipeIngredient = z.infer<typeof recipeIngredientSchema>;

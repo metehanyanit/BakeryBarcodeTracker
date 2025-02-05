@@ -16,12 +16,23 @@ export interface IStorage {
 
 export class DatabaseStorage implements IStorage {
   async getRecipes(): Promise<Recipe[]> {
-    return await db.select().from(recipes);
+    const dbRecipes = await db.select().from(recipes);
+    return dbRecipes.map(recipe => ({
+      ...recipe,
+      ingredients: JSON.parse(recipe.ingredients)
+    }));
   }
 
   async createRecipe(recipe: InsertRecipe): Promise<Recipe> {
-    const [newRecipe] = await db.insert(recipes).values(recipe).returning();
-    return newRecipe;
+    const dbRecipe = {
+      ...recipe,
+      ingredients: JSON.stringify(recipe.ingredients)
+    };
+    const [newRecipe] = await db.insert(recipes).values(dbRecipe).returning();
+    return {
+      ...newRecipe,
+      ingredients: JSON.parse(newRecipe.ingredients)
+    };
   }
   async getProducts(): Promise<Product[]> {
     return await db.select().from(products);

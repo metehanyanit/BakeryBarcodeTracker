@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer } from "http";
 import { storage } from "./storage";
-import { insertProductSchema, updateQuantitySchema, batchUpdateSchema } from "@shared/schema";
+import { insertProductSchema, updateQuantitySchema, batchUpdateSchema, recipeSchema } from "@shared/schema";
 
 export function registerRoutes(app: Express) {
   app.get("/api/products", async (_req, res) => {

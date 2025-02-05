@@ -2,26 +2,13 @@ import { pgTable, text, serial, integer, date, timestamp } from "drizzle-orm/pg-
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export type Recipe = {
-  id: number;
-  name: string;
-  description: string;
-  yield: string;
-  ingredients: Array<{
-    productId: number;
-    quantity: number;
-    unit: string;
-  }>;
-};
-
-export type InsertRecipe = Omit<Recipe, "id">;
-
 export const recipes = pgTable("recipes", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
   yield: text("yield").notNull(),
-  ingredients: text("ingredients").notNull(), // Storing as JSONB would be better for complex data
+  ingredients: text("ingredients").notNull(),
+  instructions: text("instructions").notNull()
 });
 
 export const products = pgTable("products", {

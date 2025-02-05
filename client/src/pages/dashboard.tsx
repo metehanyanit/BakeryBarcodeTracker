@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import BatchUpdateDialog from "@/components/batch-update-dialog";
 
 function ProductTable({ products }: { products: Product[] }) {
   const [filter, setFilter] = useState("");
@@ -98,9 +99,12 @@ export default function Dashboard() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-josefin-sans font-bold text-[#3E2723]">
-          Inventory Dashboard
-        </h1>
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-josefin-sans font-bold text-[#3E2723]">
+            Inventory Dashboard
+          </h1>
+          <BatchUpdateDialog products={products} />
+        </div>
       </div>
       <ExpiryAlert products={products} />
       <ProductTable products={products} />

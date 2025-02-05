@@ -47,3 +47,11 @@ export const updateQuantitySchema = z.object({
 });
 
 export type UpdateQuantity = z.infer<typeof updateQuantitySchema>;
+
+export const batchUpdateSchema = z.array(z.object({
+  id: z.number(),
+  quantity: z.number().min(0),
+  reason: z.string().min(1),
+}));
+
+export type BatchUpdate = z.infer<typeof batchUpdateSchema>;

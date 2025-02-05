@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer } from "http";
 import { storage } from "./storage";
-import { insertProductSchema, updateQuantitySchema } from "@shared/schema";
+import { insertProductSchema, updateQuantitySchema, batchUpdateSchema } from "@shared/schema";
 
 export function registerRoutes(app: Express) {
   app.get("/api/products", async (_req, res) => {
@@ -50,6 +50,20 @@ export function registerRoutes(app: Express) {
       res.json(product);
     } catch (error) {
       res.status(404).json({ message: "Product not found" });
+    }
+  });
+
+  app.post("/api/products/batch-update", async (req, res) => {
+    const result = batchUpdateSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json({ message: "Invalid batch update data", errors: result.error });
+    }
+
+    try {
+      const products = await storage.batchUpdateQuantity(result.data);
+      res.json(products);
+    } catch (error) {
+      res.status(404).json({ message: (error as Error).message });
     }
   });
 

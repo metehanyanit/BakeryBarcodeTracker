@@ -9,6 +9,7 @@ export interface IStorage {
   createProduct(product: InsertProduct): Promise<Product>;
   updateQuantity(id: number, quantity: number, reason: string): Promise<Product>;
   getQuantityHistory(productId: number): Promise<QuantityHistory[]>;
+  batchUpdateQuantity(updates: { id: number; quantity: number; reason: string }[]): Promise<Product[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -64,6 +65,40 @@ export class DatabaseStorage implements IStorage {
       .from(quantityHistory)
       .where(eq(quantityHistory.productId, productId))
       .orderBy(desc(quantityHistory.timestamp));
+  }
+
+  async batchUpdateQuantity(updates: { id: number; quantity: number; reason: string }[]) {
+    return await db.transaction(async (tx) => {
+      const results = [];
+      for (const update of updates) {
+        const [product] = await tx
+          .select()
+          .from(products)
+          .where(eq(products.id, update.id));
+
+        if (!product) {
+          throw new Error(`Product ${update.id} not found`);
+        }
+
+        await tx
+          .insert(quantityHistory)
+          .values({
+            productId: update.id,
+            quantity: update.quantity,
+            changeAmount: update.quantity - product.quantity,
+            reason: update.reason,
+          });
+
+        const [updatedProduct] = await tx
+          .update(products)
+          .set({ quantity: update.quantity, lastUpdated: new Date() })
+          .where(eq(products.id, update.id))
+          .returning();
+
+        results.push(updatedProduct);
+      }
+      return results;
+    });
   }
 }
 

@@ -7,6 +7,7 @@ import Dashboard from "@/pages/dashboard";
 import AddProduct from "@/pages/add-product";
 import Scan from "@/pages/scan";
 import NotFound from "@/pages/not-found";
+import Recipes from "@/pages/recipes";
 
 function Router() {
   return (
@@ -15,6 +16,7 @@ function Router() {
         <Route path="/" component={Dashboard} />
         <Route path="/add" component={AddProduct} />
         <Route path="/scan" component={Scan} />
+        <Route path="/recipes" component={Recipes} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

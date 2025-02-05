@@ -12,7 +12,7 @@ const db = drizzle(pool, { schema });
 
 async function runMigration() {
   console.log("Running migration...");
-  await migrate(db, { migrationsFolder: "./drizzle" });
+  await migrate(db, { migrationsFolder: "./migrations" });
   console.log("Migration completed!");
   await pool.end();
 }

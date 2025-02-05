@@ -1,4 +1,4 @@
-import { type Product, type InsertProduct, type QuantityHistory, products, quantityHistory } from "@shared/schema";
+import { type Product, type InsertProduct, type QuantityHistory, type Recipe, type InsertRecipe, products, quantityHistory, recipes } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
 

@@ -11,6 +11,13 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool, { schema });
 
 async function runMigration() {
+  console.log("Dropping existing tables...");
+  await pool.query(`
+    DROP TABLE IF EXISTS quantity_history;
+    DROP TABLE IF EXISTS products;
+    DROP TABLE IF EXISTS recipes;
+  `);
+  
   console.log("Running migration...");
   await migrate(db, { migrationsFolder: "./migrations" });
   console.log("Migration completed!");

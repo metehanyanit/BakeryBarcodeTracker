@@ -2,6 +2,28 @@ import { pgTable, text, serial, integer, date, timestamp } from "drizzle-orm/pg-
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+export type Recipe = {
+  id: number;
+  name: string;
+  description: string;
+  yield: string;
+  ingredients: Array<{
+    productId: number;
+    quantity: number;
+    unit: string;
+  }>;
+};
+
+export type InsertRecipe = Omit<Recipe, "id">;
+
+export const recipes = pgTable("recipes", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  yield: text("yield").notNull(),
+  ingredients: text("ingredients").notNull(), // Storing as JSONB would be better for complex data
+});
+
 export const products = pgTable("products", {
   id: serial("id").primaryKey(),
   barcode: text("barcode").notNull().unique(),
@@ -36,10 +58,14 @@ export const insertProductSchema = createInsertSchema(products)
 export const insertQuantityHistorySchema = createInsertSchema(quantityHistory)
   .omit({ id: true, timestamp: true });
 
+export const insertRecipeSchema = createInsertSchema(recipes).omit({id: true});
+
+
 export type InsertProduct = z.infer<typeof insertProductSchema>;
 export type Product = typeof products.$inferSelect;
 export type QuantityHistory = typeof quantityHistory.$inferSelect;
 export type InsertQuantityHistory = z.infer<typeof insertQuantityHistorySchema>;
+export type InsertRecipe = z.infer<typeof insertRecipeSchema>;
 
 export const updateQuantitySchema = z.object({
   quantity: z.number().min(0),

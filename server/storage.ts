@@ -10,9 +10,19 @@ export interface IStorage {
   updateQuantity(id: number, quantity: number, reason: string): Promise<Product>;
   getQuantityHistory(productId: number): Promise<QuantityHistory[]>;
   batchUpdateQuantity(updates: { id: number; quantity: number; reason: string }[]): Promise<Product[]>;
+  getRecipes(): Promise<Recipe[]>;
+  createRecipe(recipe: InsertRecipe): Promise<Recipe>;
 }
 
 export class DatabaseStorage implements IStorage {
+  async getRecipes(): Promise<Recipe[]> {
+    return await db.select().from(recipes);
+  }
+
+  async createRecipe(recipe: InsertRecipe): Promise<Recipe> {
+    const [newRecipe] = await db.insert(recipes).values(recipe).returning();
+    return newRecipe;
+  }
   async getProducts(): Promise<Product[]> {
     return await db.select().from(products);
   }
